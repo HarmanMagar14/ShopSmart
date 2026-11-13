@@ -3,12 +3,11 @@ import StatusMessage from '../components/StatusMessage.jsx';
 import { useCart } from '../context/CartContext.jsx';
 
 export default function CartPage() {
-  const {  cart, total, itemCount, cartMessage, setQuantity, removeFromCart } = useCart();
-  <p><span>Items</span><strong>{itemCount}</strong></p>
+  const { cart, total, itemCount, cartMessage, setQuantity, removeFromCart } = useCart();
 
   return (
     <section>
-      <div className="page-heading"><p className="eyebrow">Y  OUR ORDER</p><h1>Shopping cart</h1></div>
+      <div className="page-heading"><p className="eyebrow">YOUR ORDER</p><h1>Shopping cart</h1></div>
       <StatusMessage type={cartMessage.startsWith('Only') ? 'error' : 'info'}>{cartMessage}</StatusMessage>
       {cart.length === 0 ? (
         <div className="empty-state"><h2>Your cart is empty</h2><Link className="button" to="/">Browse products</Link></div>
@@ -18,10 +17,21 @@ export default function CartPage() {
             {cart.map((item) => (
               <article className="cart-item" key={item.productId}>
                 <div><h2>{item.name}</h2><p>₱{item.price.toLocaleString('en-PH')} each</p></div>
-                <label>Quantity
-                  <input type="number" min="1" max={item.stock} value={item.quantity}
-                    onChange={(event) => setQuantity(item.productId, Number(event.target.value))} />
-                </label>
+                <div>
+                  <label htmlFor={`quantity-${item.productId}`}>Quantity</label>
+                  {/* Both buttons pass the next value to setQuantity, so cart.js applies the same stock rules as the input. */}
+                  <div className="quantity-control">
+                    <button type="button" aria-label={`Decrease ${item.name} quantity`}
+                      disabled={item.quantity <= 1}
+                      onClick={() => setQuantity(item.productId, item.quantity - 1)}>−</button>
+                    <input id={`quantity-${item.productId}`} type="number" min="1" max={item.stock} value={item.quantity}
+                      onChange={(event) => setQuantity(item.productId, Number(event.target.value))} />
+                    <button type="button" aria-label={`Increase ${item.name} quantity`}
+                      disabled={item.quantity >= item.stock}
+                      onClick={() => setQuantity(item.productId, item.quantity + 1)}>+</button>
+                  </div>
+                  {item.quantity >= item.stock && <small className="quantity-hint">Max stock reached ({item.stock})</small>}
+                </div>
                 <strong>₱{(item.price * item.quantity).toLocaleString('en-PH')}</strong>
                 <button className="danger" onClick={() => removeFromCart(item.productId)}>Remove</button>
               </article>
@@ -29,7 +39,7 @@ export default function CartPage() {
           </div>
           <aside className="summary">
             <h2>Order summary</h2>
-            <p><span>Items</span><strong>{cart.reduce((sum, item) => sum + item.quantity, 0)}</strong></p>
+            <p><span>Items</span><strong>{itemCount}</strong></p>
             <p className="summary-total"><span>Total</span><strong>₱{total.toLocaleString('en-PH')}</strong></p>
             <Link className="button full" to="/checkout">Proceed to checkout</Link>
           </aside>

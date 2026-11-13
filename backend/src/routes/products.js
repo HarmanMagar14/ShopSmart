@@ -6,7 +6,16 @@ router.get('/', async (request, response, next) => {
   try {
     const search = String(request.query.search || '').trim();
     const products = await prisma.product.findMany({
-      where: { active: true, ...(search ? { name: { contains: search, mode: 'insensitive' } } : {}) },
+      // A search term may match either the name or the description; active must still be true.
+      where: {
+        active: true,
+        ...(search ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } }
+          ]
+        } : {})
+      },
       orderBy: { id: 'asc' }
     });
     response.json({ products: products.map((p) => ({ ...p, price: Number(p.price) })) });

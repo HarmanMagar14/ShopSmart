@@ -10,6 +10,9 @@ import assistantRouter from './routes/assistant.js';
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
+  // Render (which sets RENDER=true) puts one proxy in front of the API. Trusting it lets the
+  // rate limit see each visitor's own address instead of giving everyone one shared limit.
+  if (process.env.RENDER) app.set('trust proxy', 1);
   app.use(helmet());
   app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:5173' }));
   app.use(express.json({ limit: '100kb' }));

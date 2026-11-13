@@ -28,3 +28,34 @@ describe('cart utilities', () => {
     expect(updateCartQuantity(cart, 1, 2).error).toContain('Only 1');
   });
 });
+
+describe('quantity button boundaries', () => {
+  const cart = [
+    { productId: 1, name: 'Mouse', price: 500, stock: 3, quantity: 2 },
+    { productId: 2, name: 'Keyboard', price: 1200, stock: 5, quantity: 1 }
+  ];
+
+  it('increases only the chosen item by one', () => {
+    const result = updateCartQuantity(cart, 1, cart[0].quantity + 1);
+    expect(result.error).toBe('');
+    expect(result.cart[0].quantity).toBe(3);
+    expect(result.cart[1].quantity).toBe(1);
+  });
+
+  it('decreases by one down to a minimum of one', () => {
+    expect(updateCartQuantity(cart, 1, cart[0].quantity - 1).cart[0].quantity).toBe(1);
+  });
+
+  it('rejects decreasing below one and keeps the cart unchanged', () => {
+    const result = updateCartQuantity(cart, 2, cart[1].quantity - 1);
+    expect(result.error).toContain('greater than zero');
+    expect(result.cart).toBe(cart);
+  });
+
+  it('rejects increasing past available stock', () => {
+    const atStock = updateCartQuantity(cart, 1, 3).cart;
+    const result = updateCartQuantity(atStock, 1, 4);
+    expect(result.error).toContain('Only 3');
+    expect(result.cart[0].quantity).toBe(3);
+  });
+});

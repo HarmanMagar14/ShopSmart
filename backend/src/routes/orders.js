@@ -4,10 +4,21 @@ import { prisma } from '../lib/prisma.js';
 import { orderSchema } from '../validators/schemas.js';
 const router = Router();
 
+const FIELD_LABELS = { customerName: 'full name', email: 'email address', address: 'delivery address', items: 'cart items' };
+
+// Name the rejected fields, because the browser accepts some values (such as ana@example) that the server refuses.
+export function invalidOrderMessage(details) {
+  const fields = Object.keys(details.fieldErrors).map((field) => FIELD_LABELS[field] || field);
+  return fields.length ? `Check the ${fields.join(', ')}.` : 'Check the customer and cart information.';
+}
+
 router.post('/', async (request, response, next) => {
   try {
     const parsed = orderSchema.safeParse(request.body);
-    if (!parsed.success) return response.status(422).json({ error: { code: 'INVALID_ORDER', message: 'Check the customer and cart information.', details: parsed.error.flatten() } });
+    if (!parsed.success) {
+      const details = parsed.error.flatten();
+      return response.status(422).json({ error: { code: 'INVALID_ORDER', message: invalidOrderMessage(details), details } });
+    }
 
     const productIds = [...new Set(parsed.data.items.map((item) => item.productId))];
     const products = await prisma.product.findMany({ where: { id: { in: productIds }, active: true } });
