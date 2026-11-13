@@ -138,6 +138,17 @@ NODE_ENV=development
 
 If the class uses a different database password or port, update only the matching part of `DATABASE_URL`.
 
+The product assistant can optionally phrase answers with Google Gemini. `backend/.env.example` also contains:
+
+```env
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.8-flash
+```
+
+Paste your own key after `GEMINI_API_KEY=` in `backend/.env` only. Leave it empty to run without AI; the assistant then answers directly from the catalog. Never put the key in `frontend/.env`: every `VITE_` variable is copied into the public browser bundle.
+
+`frontend/.env` contains only the public API address, `VITE_API_URL=http://localhost:3000/api`.
+
 Never upload `.env` files or paste their contents into a public repository or AI service.
 
 ### 4. Install all project dependencies
@@ -318,8 +329,15 @@ Confirm that the front end uses http://localhost:5173 and that `FRONTEND_URL=htt
 | `npm run dev` | Run front end and API |
 | `npm run check` | Lint, test and build |
 | `npm run db:generate` | Generate Prisma Client |
-| `npm run db:migrate` | Create or update database tables |
-| `npm run db:seed` | Reset and insert sample data |
+| `npm run db:migrate` | Create or update database tables (local development only: `prisma migrate dev`) |
+| `npm run db:deploy` | Apply committed migrations without resetting data (staging/production: `prisma migrate deploy`) |
+| `npm run db:seed` | **Deletes all orders and products**, then inserts sample data |
 | `npm run db:studio` | Open the Prisma database viewer |
 
 Read `docs/TEACHING_ROADMAP.md` for the weekly improvement plan.
+
+## Release documents
+
+- `docs/TEST_RECORD.md`: customer-journey and failure test results, defects and fixes
+- `docs/DEPLOYMENT_PLAN.md`: hosting diagram, environment settings and migration plan
+- `docs/RELEASE_NOTES.md`: working features, known limitations and deployment status
